@@ -28,24 +28,29 @@ class BakingViewModel : ViewModel() {
     ) {
         _uiState.value = UiState.Loading
 
-        val newPrompt = prompt + ". What music moods would help me in this case? Only answer the music moods that would help me in this case separated by comma, nothing else.";
+        val newPrompt = prompt + ". Give me five keywords to search for music that would make me better in this case. Only answer those keywords, separated by commas.";
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Problem lies here
-                val musicBrainzResponse = RetrofitClient.api.searchSongsByTag("rock")
-
                 val response = generativeModel.generateContent(
                     content {
-                        image(bitmap)
-                        //text(newPrompt)
-                        text("Is this a title of a song? " + musicBrainzResponse.recordings[0].title)
+                        //image(bitmap)
+                        text(newPrompt)
                     }
                 )
 
                 response.text?.let { outputContent ->
-                    _uiState.value = UiState.Success(musicBrainzResponse.recordings[0].title)
+                    _uiState.value = UiState.Success(outputContent)
                 }
+                /*response.text?.let { outputContent ->
+                    val tags = outputContent.split(",").toTypedArray()
+                    /*for (t in tags) {
+                        val musicBrainzResult = RetrofitClient.api.searchSongsByTag("tag:" + t)
+                        _uiState.value = UiState.Success(musicBrainzResult.recordings[0].title)
+                    }*/
+                    val musicBrainzResult = RetrofitClient.api.searchSongsByTag("tag:" + "happy")
+                    _uiState.value = UiState.Success(musicBrainzResult.recordings[0].title)
+                }*/
             } catch (e: Exception) {
                 _uiState.value = UiState.Error(e.localizedMessage ?: "")
             }
