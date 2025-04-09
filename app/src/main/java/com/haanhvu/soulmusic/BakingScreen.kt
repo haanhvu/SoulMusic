@@ -36,21 +36,43 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import android.content.Intent
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import android.net.Uri
 
-/*val images = arrayOf(
-    // Image generated using Gemini from the prompt "cupcake image"
-    R.drawable.baked_goods_1,
-    // Image generated using Gemini from the prompt "cookies images"
-    R.drawable.baked_goods_2,
-    // Image generated using Gemini from the prompt "cake images"
-    R.drawable.baked_goods_3,
-)
-val imageDescriptions = arrayOf(
-    R.string.image1_description,
-    R.string.image2_description,
-    R.string.image3_description,
-)*/
+@Composable
+fun SongItem(
+    title: String,
+    link: String
+) {
+    val context = LocalContext.current
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Text(
+            text = link,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .clickable {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    ContextCompat.startActivity(context, intent, null)
+                }
+                .padding(top = 4.dp),
+        )
+    }
+}
+
+
 
 @Composable
 fun BakingScreen(
@@ -105,11 +127,30 @@ fun BakingScreen(
             if (uiState is UiState.Error) {
                 textColor = MaterialTheme.colorScheme.error
                 result = (uiState as UiState.Error).errorMessage
+
+                val scrollState = rememberScrollState()
+                Text(
+                    text = result,
+                    textAlign = TextAlign.Start,
+                    color = textColor,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                )
             } else if (uiState is UiState.Success) {
-                textColor = MaterialTheme.colorScheme.onSurface
-                result = (uiState as UiState.Success).outputText
+                // handle in this else if
+                val tagsString = (uiState as UiState.Success).outputText
+                val tags = tagsString.split(",").toTypedArray()
+                for (t in tags) {
+                    val musicBrainzResult = RetrofitClient.api.searchSongsByTag("tag:" + t)
+                }
+
+                //textColor = MaterialTheme.colorScheme.onSurface
+                //result = (uiState as UiState.Success).outputText
             }
-            val scrollState = rememberScrollState()
+            /*val scrollState = rememberScrollState()
             Text(
                 text = result,
                 textAlign = TextAlign.Start,
@@ -119,7 +160,7 @@ fun BakingScreen(
                     .padding(16.dp)
                     .fillMaxSize()
                     .verticalScroll(scrollState)
-            )
+            )*/
         }
     }
 }
