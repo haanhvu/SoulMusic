@@ -22,6 +22,8 @@ class BakingViewModel : ViewModel() {
         apiKey = BuildConfig.apiKey
     )
 
+    val recordings = mutableMapOf<String, String>()
+
     fun sendPrompt(
         prompt: String
     ) {
@@ -37,18 +39,17 @@ class BakingViewModel : ViewModel() {
                     }
                 )
 
-                response.text?.let { outputContent ->
-                    _uiState.value = UiState.Success(outputContent)
-                }
                 /*response.text?.let { outputContent ->
-                    val tags = outputContent.split(",").toTypedArray()
-                    /*for (t in tags) {
-                        val musicBrainzResult = RetrofitClient.api.searchSongsByTag("tag:" + t)
-                        _uiState.value = UiState.Success(musicBrainzResult.recordings[0].title)
-                    }*/
-                    val musicBrainzResult = RetrofitClient.api.searchSongsByTag("tag:" + "happy")
-                    _uiState.value = UiState.Success(musicBrainzResult.recordings[0].title)
+                    _uiState.value = UiState.Success(outputContent)
                 }*/
+                response.text?.let { outputContent ->
+                    val tags = outputContent.split(",").toTypedArray()
+                    for (t in tags) {
+                        val musicBrainzResult = RetrofitClient.api.searchSongsByTag("tag:" + t)
+                        
+                        _uiState.value = UiState.Success(musicBrainzResult.recordings[0].title)
+                    }
+                }
             } catch (e: Exception) {
                 _uiState.value = UiState.Error(e.localizedMessage ?: "")
             }
