@@ -4,6 +4,7 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 // Data model for API response
@@ -21,6 +22,25 @@ data class ArtistCredit(
     val name: String
 )
 
+data class RecordingUrlsResponse(
+    val id: String,
+    val title: String,
+    val length: Long?,
+    val video: Boolean,
+    val relations: List<Relation> = emptyList()
+)
+
+data class Relation(
+    val type: String,
+    val url: Url,
+    val direction: String
+)
+
+data class Url(
+    val id: String,
+    val resource: String
+)
+
 // Retrofit API interface
 interface MusicBrainzApi {
     @GET("ws/2/recording/")
@@ -28,6 +48,13 @@ interface MusicBrainzApi {
         @Query("query") tag: String,
         @Query("fmt") format: String = "json"
     ): MusicBrainzResponse
+
+    @GET("ws/2/recording/{mbid}")
+    suspend fun getRecordingUrls(
+        @Path("mbid") recordingId: String,
+        @Query("inc") include: String = "url-rels",
+        @Query("fmt") format: String = "json"
+    ): RecordingUrlsResponse
 }
 
 // Retrofit instance

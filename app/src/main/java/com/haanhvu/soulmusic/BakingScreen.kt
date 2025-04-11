@@ -1,17 +1,22 @@
 package com.haanhvu.soulmusic
 
+import android.content.Intent
 import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -36,21 +41,52 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 
-/*val images = arrayOf(
-    // Image generated using Gemini from the prompt "cupcake image"
-    R.drawable.baked_goods_1,
-    // Image generated using Gemini from the prompt "cookies images"
-    R.drawable.baked_goods_2,
-    // Image generated using Gemini from the prompt "cake images"
-    R.drawable.baked_goods_3,
-)
-val imageDescriptions = arrayOf(
-    R.string.image1_description,
-    R.string.image2_description,
-    R.string.image3_description,
-)*/
+@Composable
+fun SongItem(
+    title: String,
+    link: String
+) {
+    val context = LocalContext.current
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Text(
+            text = link,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .clickable {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    ContextCompat.startActivity(context, intent, null)
+                }
+                .padding(top = 4.dp),
+        )
+    }
+}
+
+@Composable
+fun SongList(recordingTitleLink: Map<String, String>) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        items(recordingTitleLink.toList()) { (title, link) ->
+            SongItem(title, link)
+        }
+    }
+}
 
 @Composable
 fun BakingScreen(
@@ -105,11 +141,25 @@ fun BakingScreen(
             if (uiState is UiState.Error) {
                 textColor = MaterialTheme.colorScheme.error
                 result = (uiState as UiState.Error).errorMessage
+
+                val scrollState = rememberScrollState()
+                Text(
+                    text = result,
+                    textAlign = TextAlign.Start,
+                    color = textColor,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                )
             } else if (uiState is UiState.Success) {
-                textColor = MaterialTheme.colorScheme.onSurface
-                result = (uiState as UiState.Success).outputText
+                SongList(bakingViewModel.recordingTitleLink)
+
+                //textColor = MaterialTheme.colorScheme.onSurface
+                //result = (uiState as UiState.Success).outputText
             }
-            val scrollState = rememberScrollState()
+            /*val scrollState = rememberScrollState()
             Text(
                 text = result,
                 textAlign = TextAlign.Start,
@@ -119,7 +169,7 @@ fun BakingScreen(
                     .padding(16.dp)
                     .fillMaxSize()
                     .verticalScroll(scrollState)
-            )
+            )*/
         }
     }
 }

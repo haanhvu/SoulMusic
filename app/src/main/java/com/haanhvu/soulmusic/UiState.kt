@@ -16,9 +16,9 @@ sealed interface UiState {
     object Loading : UiState
 
     /**
-     * Text has been generated
+     * Data has been generated
      */
-    data class Success(val outputText: String) : UiState
+    data class Success(val output: Map<String, String>) : UiState
 
     /**
      * There was an error generating text

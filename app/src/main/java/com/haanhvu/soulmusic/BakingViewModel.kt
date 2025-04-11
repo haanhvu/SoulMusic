@@ -3,6 +3,7 @@ package com.haanhvu.soulmusic
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.util.Log
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +23,8 @@ class BakingViewModel : ViewModel() {
         apiKey = BuildConfig.apiKey
     )
 
+    val recordingTitleLink = mutableMapOf<String, String>()
+
     fun sendPrompt(
         prompt: String
     ) {
@@ -38,19 +41,29 @@ class BakingViewModel : ViewModel() {
                 )
 
                 response.text?.let { outputContent ->
-                    _uiState.value = UiState.Success(outputContent)
-                }
-                /*response.text?.let { outputContent ->
+                    Log.e("BakingViewModel", "Gemini output: " + outputContent)
                     val tags = outputContent.split(",").toTypedArray()
-                    /*for (t in tags) {
-                        val musicBrainzResult = RetrofitClient.api.searchSongsByTag("tag:" + t)
-                        _uiState.value = UiState.Success(musicBrainzResult.recordings[0].title)
-                    }*/
-                    val musicBrainzResult = RetrofitClient.api.searchSongsByTag("tag:" + "happy")
-                    _uiState.value = UiState.Success(musicBrainzResult.recordings[0].title)
-                }*/
+                    for (t in tags) {
+                        val recordingsResult = RetrofitClient.api.searchSongsByTag("tag:" + t)
+                        Log.e("BakingViewModel", "Recording result: " + recordingsResult)
+                        if (recordingsResult.recordings.size == 0) {
+                            recordingTitleLink["Some title"] = "Some link"
+                            continue
+                        }
+                        val recordingUrlsResult = RetrofitClient.api.getRecordingUrls(recordingsResult.recordings[0].id)
+                        val recordingTitle = recordingsResult.recordings[0].title
+                        val recordingLink = if (recordingUrlsResult.relations.size > 0) {
+                            recordingUrlsResult.relations[0].url.resource
+                        } else {
+                            "Not found"
+                        }
+                        Log.e("BakingViewModel", "Recording link: " + recordingLink)
+                        recordingTitleLink[recordingTitle] = recordingLink
+                    }
+                    _uiState.value = UiState.Success(recordingTitleLink)
+                }
             } catch (e: Exception) {
-                _uiState.value = UiState.Error(e.localizedMessage ?: "")
+                _uiState.value = UiState.Error(e.localizedMessage ?: "" + " at BakingViewModel.")
             }
         }
     }
