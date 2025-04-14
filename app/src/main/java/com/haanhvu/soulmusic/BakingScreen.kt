@@ -70,7 +70,7 @@ fun SongItem(
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     ContextCompat.startActivity(context, intent, null)
                 }
-                .padding(top = 4.dp),
+                //.padding(top = 4.dp),
         )
     }
 }

@@ -55,7 +55,7 @@ class BakingViewModel : ViewModel() {
                         val recordingLink = if (recordingUrlsResult.relations.size > 0) {
                             recordingUrlsResult.relations[0].url.resource
                         } else {
-                            "Not found"
+                            "Not found. Please submit if you find."
                         }
                         Log.e("BakingViewModel", "Recording link: " + recordingLink)
                         recordingTitleLink[recordingTitle] = recordingLink
