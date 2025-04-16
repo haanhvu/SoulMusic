@@ -46,19 +46,23 @@ class BakingViewModel : ViewModel() {
                     for (t in tags) {
                         val recordingsResult = RetrofitClient.api.searchSongsByTag("tag:" + t)
                         Log.e("BakingViewModel", "Recording result: " + recordingsResult)
+                        Log.e("BakingViewModel", "Number of recordings: " + recordingsResult.recordings.size)
                         if (recordingsResult.recordings.size == 0) {
                             recordingTitleLink["Some title"] = "Some link"
                             continue
                         }
-                        val recordingUrlsResult = RetrofitClient.api.getRecordingUrls(recordingsResult.recordings[0].id)
-                        val recordingTitle = recordingsResult.recordings[0].title
-                        val recordingLink = if (recordingUrlsResult.relations.size > 0) {
-                            recordingUrlsResult.relations[0].url.resource
-                        } else {
-                            "Not found. Please submit if you find."
+                        var index = 0
+                        while (index < recordingsResult.recordings.size) {
+                            Log.e("BakingViewModel", "Index: " + index)
+                            val recordingUrlsResult = RetrofitClient.api.getRecordingUrls(recordingsResult.recordings[index].id)
+                            if (recordingUrlsResult.relations.size > 0) {
+                                val recordingTitle = recordingsResult.recordings[0].title
+                                val recordingLink = recordingUrlsResult.relations[0].url.resource
+                                recordingTitleLink[recordingTitle] = recordingLink
+                                break
+                            }
+                            index++
                         }
-                        Log.e("BakingViewModel", "Recording link: " + recordingLink)
-                        recordingTitleLink[recordingTitle] = recordingLink
                     }
                     _uiState.value = UiState.Success(recordingTitleLink)
                 }
