@@ -34,6 +34,8 @@ class BakingViewModel : ViewModel() {
     ) {
         _uiState.value = UiState.Loading
 
+        recordingTitleLink.clear()
+
         val newPrompt = prompt + ". Give me five keywords to search for music that would make me better in this case. Only answer those keywords, separated by commas.";
 
         viewModelScope.launch(Dispatchers.IO) {
