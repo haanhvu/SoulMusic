@@ -1,6 +1,11 @@
 package com.haanhvu.soulmusic
 
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
@@ -15,10 +20,11 @@ data class MusicBrainzResponse(
 data class Recording(
     val id: String,
     val title: String,
-    val artistCredit: List<ArtistCredit> = emptyList()
+    @Json(name = "artist-credit")
+    val artistCredit: List<NameCredit>
 )
 
-data class ArtistCredit(
+data class NameCredit(
     val name: String
 )
 
@@ -61,6 +67,14 @@ interface MusicBrainzApi {
 object RetrofitClient {
     private const val BASE_URL = "https://musicbrainz.org/"
 
+    val logging = HttpLoggingInterceptor().apply {
+        level = HttpLoggingInterceptor.Level.BODY
+    }
+
+    val moshi = Moshi.Builder()
+        .add(KotlinJsonAdapterFactory())
+        .build()
+
     val okHttpClient = OkHttpClient.Builder()
         .addInterceptor { chain ->
             val request = chain.request().newBuilder()
@@ -68,13 +82,14 @@ object RetrofitClient {
                 .build()
             chain.proceed(request)
         }
+        .addInterceptor(logging)
         .build()
 
     val api: MusicBrainzApi by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(MoshiConverterFactory.create()) // Converts JSON to Kotlin data classes
+            .addConverterFactory(MoshiConverterFactory.create(moshi)) // Converts JSON to Kotlin data classes
             .build()
             .create(MusicBrainzApi::class.java)
     }

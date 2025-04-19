@@ -58,7 +58,9 @@ fun SongItem(
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = Int.MAX_VALUE,
+            softWrap = true
         )
 
         Text(
