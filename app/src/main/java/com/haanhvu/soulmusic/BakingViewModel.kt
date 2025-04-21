@@ -27,7 +27,11 @@ class BakingViewModel : ViewModel() {
         apiKey = BuildConfig.apiKey
     )
 
+    private val recordingsResult = arrayOfNulls<MusicBrainzResponse>(5)
+
     val recordingTitleLink = mutableMapOf<String, String>()
+
+    private var iteration = 0
 
     fun sendPrompt(
         prompt: String
@@ -49,57 +53,47 @@ class BakingViewModel : ViewModel() {
                 response.text?.let { outputContent ->
                     Log.e("BakingViewModel", "Gemini output: " + outputContent)
                     val tags = outputContent.split(",").toTypedArray()
-                    for (t in tags) {
-                        val recordingsResult = RetrofitClient.api.searchSongsByTag("tag:" + t)
-                        Log.e("BakingViewModel", "Recordings result: " + recordingsResult)
-                        Log.e("BakingViewModel", "Number of recordings: " + recordingsResult.recordings.size)
-                        if (recordingsResult.recordings.size == 0) {
-                            recordingTitleLink["Some title"] = "Some link"
-                            continue
-                        }
-
-                        /*val recordingTitle = recordingsResult.recordings[0].title
-                        var recordingLink: String
-                        if (recordingsResult.recordings[0].artistCredit != null) {
-                            recordingLink = "Artist exists"
-                        } else {
-                            recordingLink = "No artist"
-                        }
-                        recordingTitleLink[recordingTitle] = recordingLink*/
-                        var index = 0
-                        while (index < recordingsResult.recordings.size) {
-                            Log.e("BakingViewModel", "Index: " + index)
-                            val recordingUrlsResult = RetrofitClient.api.getRecordingUrls(recordingsResult.recordings[index].id)
-                            if (recordingUrlsResult.relations.size > 0) {
-                                val recordingTitle = recordingsResult.recordings[index].title
-                                val recordingLink = recordingUrlsResult.relations[0].url.resource
-                                recordingTitleLink[recordingTitle] = recordingLink
-                                break
-                            } else {
-                                var query = recordingsResult.recordings[index].title
-                                var artistName = ""
-                                for (artist in recordingsResult.recordings[index].artistCredit) {
-                                    artistName = artistName + " " + artist.name
-                                    query = query + " " + artist.name
+                    for (i in tags.indices) {
+                        recordingsResult[i] = RetrofitClient.api.searchSongsByTag("tag:" + tags[i])
+                        val recordingsResultItem = recordingsResult[i]
+                        recordingsResultItem?.let {
+                            Log.e("BakingViewModel", "Recordings result: " + recordingsResultItem)
+                            Log.e("BakingViewModel", "Number of recordings: " + recordingsResultItem.recordings.size)
+                            var index = 0
+                            while (recordingsResultItem.recordings.size > 0 && index < recordingsResultItem.recordings.size) {
+                                Log.e("BakingViewModel", "Index: " + index)
+                                val recordingUrlsResult = RetrofitClient.api.getRecordingUrls(recordingsResultItem.recordings[index].id)
+                                if (recordingUrlsResult.relations.size > 0) {
+                                    val recordingTitle = recordingsResultItem.recordings[index].title
+                                    val recordingLink = recordingUrlsResult.relations[0].url.resource
+                                    recordingTitleLink[recordingTitle] = recordingLink
+                                    break
+                                } else {
+                                    var query = recordingsResultItem.recordings[index].title
+                                    var artistName = ""
+                                    for (artist in recordingsResultItem.recordings[index].artistCredit) {
+                                        artistName = artistName + " " + artist.name
+                                        query = query + " " + artist.name
+                                    }
+                                    val retrofit = Retrofit.Builder()
+                                        .baseUrl("https://www.googleapis.com/youtube/v3/")
+                                        .addConverterFactory(MoshiConverterFactory.create(RetrofitClient.moshi))
+                                        .build()
+                                    val youTubeApiService = retrofit.create(YouTubeApiService::class.java)
+                                    val response = youTubeApiService.searchVideos(
+                                        query = query
+                                    )
+                                    val video = response.items.firstOrNull()
+                                    var recordingLink = "Not found on Youtube"
+                                    video?.let {
+                                        recordingLink = "https://www.youtube.com/watch?v=${it.id.videoId}"
+                                    }
+                                    val recordingTitle = recordingsResultItem.recordings[index].title
+                                    recordingTitleLink[recordingTitle + " by" + artistName] = recordingLink
+                                    break
                                 }
-                                val retrofit = Retrofit.Builder()
-                                    .baseUrl("https://www.googleapis.com/youtube/v3/")
-                                    .addConverterFactory(MoshiConverterFactory.create(RetrofitClient.moshi))
-                                    .build()
-                                val youTubeApiService = retrofit.create(YouTubeApiService::class.java)
-                                val response = youTubeApiService.searchVideos(
-                                    query = query
-                                )
-                                val video = response.items.firstOrNull()
-                                var recordingLink = "Not found on Youtube"
-                                video?.let {
-                                    recordingLink = "https://www.youtube.com/watch?v=${it.id.videoId}"
-                                }
-                                val recordingTitle = recordingsResult.recordings[index].title
-                                recordingTitleLink[recordingTitle + " by" + artistName] = recordingLink
-                                break
+                                index++
                             }
-                            index++
                         }
                     }
                     _uiState.value = UiState.Success(recordingTitleLink)
@@ -108,5 +102,11 @@ class BakingViewModel : ViewModel() {
                 _uiState.value = UiState.Error(e.localizedMessage ?: "" + " at BakingViewModel.")
             }
         }
+    }
+
+    fun addMoreResults() {
+        iteration++
+
+
     }
 }

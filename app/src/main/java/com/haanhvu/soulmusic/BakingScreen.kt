@@ -3,12 +3,15 @@ package com.haanhvu.soulmusic
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,6 +46,26 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun ButtonRow() {
+    val buttonLabels = listOf("Yes", "Maybe", "Cancel", "Continue", "OK", "SomethingLong")
+
+    FlowRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+    ) {
+        buttonLabels.forEach { label ->
+            Button(onClick = { /* TODO */ }) {
+                Text(text = label)
+            }
+        }
+    }
+}
 
 @Composable
 fun SongItem(
@@ -86,6 +109,27 @@ fun SongList(recordingTitleLink: Map<String, String>) {
     ) {
         items(recordingTitleLink.toList()) { (title, link) ->
             SongItem(title, link)
+        }
+
+        // Add the button as the last item
+        item {
+            Spacer(modifier = Modifier.height(16.dp)) // spacing before the button
+            CenteredButton()
+        }
+    }
+}
+
+@Composable
+fun CenteredButton() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Button(onClick = {
+
+        }) {
+            Text("More")
         }
     }
 }
@@ -136,6 +180,8 @@ fun BakingScreen(
             }
         }
 
+        ButtonRow()
+
         if (uiState is UiState.Loading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
         } else {
@@ -156,7 +202,9 @@ fun BakingScreen(
                         .verticalScroll(scrollState)
                 )
             } else if (uiState is UiState.Success) {
-                SongList(bakingViewModel.recordingTitleLink)
+                Column(modifier = Modifier.fillMaxSize()) {
+                    SongList(bakingViewModel.recordingTitleLink)
+                }
 
                 //textColor = MaterialTheme.colorScheme.onSurface
                 //result = (uiState as UiState.Success).outputText
