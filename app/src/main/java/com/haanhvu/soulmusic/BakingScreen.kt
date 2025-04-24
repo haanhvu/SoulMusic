@@ -101,35 +101,43 @@ fun SongItem(
 }
 
 @Composable
-fun SongList(recordingTitleLink: Map<String, String>) {
+fun SongList(
+    bakingViewModel: BakingViewModel
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        items(recordingTitleLink.toList()) { (title, link) ->
+        items(bakingViewModel.recordingTitleLink.toList()) { (title, link) ->
             SongItem(title, link)
         }
 
         // Add the button as the last item
         item {
             Spacer(modifier = Modifier.height(16.dp)) // spacing before the button
-            CenteredButton()
+            CenteredButton(bakingViewModel)
         }
     }
 }
 
 @Composable
-fun CenteredButton() {
+fun CenteredButton(
+    bakingViewModel: BakingViewModel
+) {
+    var showButton by remember { mutableStateOf(true) }
     Row(
         modifier = Modifier
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.Center
     ) {
-        Button(onClick = {
-
-        }) {
-            Text("More")
+        if (showButton) {
+            Button(onClick = {
+                //bakingViewModel.addMoreResults()
+                showButton = false
+            }) {
+                Text("More")
+            }
         }
     }
 }
@@ -203,7 +211,7 @@ fun BakingScreen(
                 )
             } else if (uiState is UiState.Success) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    SongList(bakingViewModel.recordingTitleLink)
+                    SongList(bakingViewModel)
                 }
 
                 //textColor = MaterialTheme.colorScheme.onSurface

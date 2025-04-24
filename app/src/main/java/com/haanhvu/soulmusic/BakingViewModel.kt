@@ -105,8 +105,54 @@ class BakingViewModel : ViewModel() {
     }
 
     fun addMoreResults() {
-        iteration++
+        _uiState.value = UiState.Loading
 
-        
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                iteration++
+
+                for (r in recordingsResult) {
+                    r?.let {
+                        while (r.recordings.size > 0 && iteration < r.recordings.size) {
+                            val recordingUrlsResult = RetrofitClient.api.getRecordingUrls(r.recordings[iteration].id)
+                            if (recordingUrlsResult.relations.size > 0) {
+                                val recordingTitle = r.recordings[iteration].title
+                                val recordingLink = recordingUrlsResult.relations[0].url.resource
+                                recordingTitleLink[recordingTitle] = recordingLink
+                                break
+                            } else {
+                                var query = r.recordings[iteration].title
+                                var artistName = ""
+                                for (artist in r.recordings[iteration].artistCredit) {
+                                    artistName = artistName + " " + artist.name
+                                    query = query + " " + artist.name
+                                }
+                                val retrofit = Retrofit.Builder()
+                                    .baseUrl("https://www.googleapis.com/youtube/v3/")
+                                    .addConverterFactory(MoshiConverterFactory.create(RetrofitClient.moshi))
+                                    .build()
+                                val youTubeApiService = retrofit.create(YouTubeApiService::class.java)
+                                val response = youTubeApiService.searchVideos(
+                                    query = query
+                                )
+                                val video = response.items.firstOrNull()
+                                var recordingLink = "Not found on Youtube"
+                                video?.let {
+                                    recordingLink = "https://www.youtube.com/watch?v=${it.id.videoId}"
+                                }
+                                val recordingTitle = r.recordings[iteration].title
+                                recordingTitleLink[recordingTitle + " by" + artistName] = recordingLink
+                                break
+                            }
+                            iteration++
+                        }
+                    }
+                }
+
+                _uiState.value = UiState.Success(recordingTitleLink)
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error(e.localizedMessage ?: "" + " at BakingViewModel.")
+            }
+        }
     }
 }
