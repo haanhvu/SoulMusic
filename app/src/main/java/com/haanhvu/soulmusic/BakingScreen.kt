@@ -32,6 +32,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -104,26 +106,41 @@ fun SongItem(
 fun SongList(
     bakingViewModel: BakingViewModel
 ) {
+    val stateMapRecordingTitleLink = remember { mutableStateMapOf<String, String>().apply { putAll(bakingViewModel.recordingTitleLink) } }
+    val stateListRecordingTitleLink = remember { mutableStateListOf<Pair<String, String>>().apply { addAll(bakingViewModel.recordingTitleLink.toList()) } }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        items(bakingViewModel.recordingTitleLink.toList()) { (title, link) ->
+        items(stateListRecordingTitleLink) { (title, link) ->
             SongItem(title, link)
         }
 
-        if (bakingViewModel.showButton) {
+        /*if (bakingViewModel.showButton) {
             // Add the button as the last item
             item {
                 Spacer(modifier = Modifier.height(16.dp)) // spacing before the button
                 CenteredButton(bakingViewModel)
             }
+        }*/
+
+        item {
+            // "More" button at the end
+            Button(
+                onClick = { stateListRecordingTitleLink.add(Pair("Hello", "World")) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text("More")
+            }
         }
     }
 }
 
-@Composable
+/*@Composable
 fun CenteredButton(
     bakingViewModel: BakingViewModel
 ) {
@@ -154,7 +171,7 @@ fun CenteredButton(
     /*songsToShow.forEach { (title, link) ->
         SongItem(title, link) // ✅ now it's valid
     }*/
-}
+}*/
 
 @Composable
 fun BakingScreen(
