@@ -33,6 +33,8 @@ class BakingViewModel : ViewModel() {
 
     private var iteration = 0
 
+    var showButton = true
+
     fun sendPrompt(
         prompt: String
     ) {

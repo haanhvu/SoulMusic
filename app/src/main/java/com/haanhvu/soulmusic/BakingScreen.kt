@@ -113,10 +113,12 @@ fun SongList(
             SongItem(title, link)
         }
 
-        // Add the button as the last item
-        item {
-            Spacer(modifier = Modifier.height(16.dp)) // spacing before the button
-            CenteredButton(bakingViewModel)
+        if (bakingViewModel.showButton) {
+            // Add the button as the last item
+            item {
+                Spacer(modifier = Modifier.height(16.dp)) // spacing before the button
+                CenteredButton(bakingViewModel)
+            }
         }
     }
 }
@@ -125,20 +127,28 @@ fun SongList(
 fun CenteredButton(
     bakingViewModel: BakingViewModel
 ) {
-    var showButton by remember { mutableStateOf(true) }
+    var songsToShow by remember { mutableStateOf(emptyMap<String, String>()) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.Center
     ) {
-        if (showButton) {
+        if (bakingViewModel.showButton) {
             Button(onClick = {
+                // reached here
                 //bakingViewModel.addMoreResults()
-                showButton = false
+                bakingViewModel.showButton = false
+                //songsToShow = bakingViewModel.recordingTitleLink
+                songsToShow = songsToShow + ("Title" to "https://example.com")
             }) {
                 Text("More")
             }
         }
+    }
+
+    songsToShow.forEach { (title, link) ->
+        SongItem(title, link) // ✅ now it's valid
     }
 }
 
