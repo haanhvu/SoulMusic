@@ -71,7 +71,7 @@ class BakingViewModel : ViewModel() {
                                     recordingTitleLink[recordingTitle] = recordingLink
                                     break
                                 } else {
-                                    var query = recordingsResultItem.recordings[index].title
+                                    /*var query = recordingsResultItem.recordings[index].title
                                     var artistName = ""
                                     for (artist in recordingsResultItem.recordings[index].artistCredit) {
                                         artistName = artistName + " " + artist.name
@@ -85,13 +85,14 @@ class BakingViewModel : ViewModel() {
                                     val response = youTubeApiService.searchVideos(
                                         query = query
                                     )
-                                    val video = response.items.firstOrNull()
-                                    var recordingLink = "Not found on Youtube"
-                                    video?.let {
+                                    val video = response.items.firstOrNull()*/
+                                    var recordingLink = "Not found on Youtubeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+                                    /*video?.let {
                                         recordingLink = "https://www.youtube.com/watch?v=${it.id.videoId}"
-                                    }
+                                    }*/
                                     val recordingTitle = recordingsResultItem.recordings[index].title
-                                    recordingTitleLink[recordingTitle + " by" + artistName] = recordingLink
+                                    //recordingTitleLink[recordingTitle + " by" + artistName] = recordingLink
+                                    recordingTitleLink[recordingTitle] = recordingLink
                                     break
                                 }
                                 index++

@@ -127,7 +127,8 @@ fun SongList(
 fun CenteredButton(
     bakingViewModel: BakingViewModel
 ) {
-    var songsToShow by remember { mutableStateOf(emptyMap<String, String>()) }
+    var enabledAddingSongs by remember { mutableStateOf(false) }
+    //var songsToShow by remember { mutableStateOf(emptyMap<String, String>()) }
 
     Row(
         modifier = Modifier
@@ -136,20 +137,23 @@ fun CenteredButton(
     ) {
         if (bakingViewModel.showButton) {
             Button(onClick = {
-                // reached here
-                //bakingViewModel.addMoreResults()
                 bakingViewModel.showButton = false
+                enabledAddingSongs = true
+
                 //songsToShow = bakingViewModel.recordingTitleLink
-                songsToShow = songsToShow + ("Title" to "https://example.com")
+                //songsToShow = songsToShow + ("Title" to "https://example.com")
             }) {
                 Text("More")
             }
         }
+        if (enabledAddingSongs) {
+            SongItem("New title", "New link")
+            bakingViewModel.recordingTitleLink["New title"] = "New link"
+        }
     }
-
-    songsToShow.forEach { (title, link) ->
+    /*songsToShow.forEach { (title, link) ->
         SongItem(title, link) // ✅ now it's valid
-    }
+    }*/
 }
 
 @Composable
