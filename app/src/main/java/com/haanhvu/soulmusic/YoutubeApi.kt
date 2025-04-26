@@ -10,6 +10,8 @@ interface YouTubeApiService {
         @Query("q") query: String,
         @Query("type") type: String = "video",
         @Query("maxResults") maxResults: Int = 1,
+        // Try this later when youtube api is used again
+        //@Query("videoCategoryId") videoCategoryId: Int = 10,
         @Query("key") apiKey: String = "AIzaSyDRy-p3wq8ziRwpp9hiJ8-83VxP5oHNZbY"
     ): YouTubeSearchResponse
 }
