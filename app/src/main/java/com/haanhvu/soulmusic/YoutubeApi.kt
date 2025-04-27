@@ -12,6 +12,8 @@ interface YouTubeApiService {
         @Query("maxResults") maxResults: Int = 1,
         // Try this later when youtube api is used again
         //@Query("videoCategoryId") videoCategoryId: Int = 10,
+
+        // If open-source, this line needs to be hidden
         @Query("key") apiKey: String = "AIzaSyDRy-p3wq8ziRwpp9hiJ8-83VxP5oHNZbY"
     ): YouTubeSearchResponse
 }

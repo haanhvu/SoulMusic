@@ -49,26 +49,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun ButtonRow() {
-    val buttonLabels = listOf("Yes", "Maybe", "Cancel", "Continue", "OK", "SomethingLong")
-
-    FlowRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
-        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
-    ) {
-        buttonLabels.forEach { label ->
-            Button(onClick = { /* TODO */ }) {
-                Text(text = label)
-            }
-        }
-    }
-}
-
 @Composable
 fun SongItem(
     title: String,
@@ -173,6 +153,7 @@ fun CenteredButton(
     }*/
 }*/
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun BakingScreen(
     bakingViewModel: BakingViewModel = viewModel()
@@ -219,7 +200,23 @@ fun BakingScreen(
             }
         }
 
-        ButtonRow()
+        val buttonLabels = listOf("Yes", "Maybe", "Cancel", "Continue", "OK", "I'm finding answer")
+        FlowRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+        ) {
+            buttonLabels.forEach { label ->
+                Button(onClick = {
+                    prompt = label
+                    bakingViewModel.sendPrompt(prompt)
+                }) {
+                    Text(text = label)
+                }
+            }
+        }
 
         if (uiState is UiState.Loading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
