@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.util.Log
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import com.squareup.moshi.Moshi
@@ -106,9 +107,9 @@ class BakingViewModel : ViewModel() {
         }
     }
 
-    fun addMoreResults() {
-        _uiState.value = UiState.Loading
-
+    fun addMoreResults(
+        stateListRecordingTitleLink: SnapshotStateList<Pair<String, String>>
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 iteration++
@@ -120,7 +121,7 @@ class BakingViewModel : ViewModel() {
                             if (recordingUrlsResult.relations.size > 0) {
                                 val recordingTitle = r.recordings[iteration].title
                                 val recordingLink = recordingUrlsResult.relations[0].url.resource
-                                recordingTitleLink[recordingTitle] = recordingLink
+                                stateListRecordingTitleLink.add(Pair(recordingTitle, recordingLink))
                                 break
                             } else {
                                 var query = r.recordings[iteration].title
@@ -143,15 +144,13 @@ class BakingViewModel : ViewModel() {
                                     recordingLink = "https://www.youtube.com/watch?v=${it.id.videoId}"
                                 }
                                 val recordingTitle = r.recordings[iteration].title
-                                recordingTitleLink[recordingTitle + " by" + artistName] = recordingLink
+                                stateListRecordingTitleLink.add(Pair(recordingTitle + " by" + artistName, recordingLink))
                                 break
                             }
                             iteration++
                         }
                     }
                 }
-
-                _uiState.value = UiState.Success(recordingTitleLink)
             } catch (e: Exception) {
                 _uiState.value = UiState.Error(e.localizedMessage ?: "" + " at BakingViewModel.")
             }

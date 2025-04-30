@@ -109,7 +109,9 @@ fun SongList(
         item {
             // "More" button at the end
             Button(
-                onClick = { stateListRecordingTitleLink.add(Pair("Hello", "World")) },
+                onClick = {
+                    bakingViewModel.addMoreResults(stateListRecordingTitleLink)
+                          },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
