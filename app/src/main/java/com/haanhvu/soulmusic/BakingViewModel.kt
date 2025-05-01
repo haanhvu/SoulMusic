@@ -32,9 +32,7 @@ class BakingViewModel : ViewModel() {
 
     val recordingTitleLink = mutableMapOf<String, String>()
 
-    private var iteration = 0
-
-    var showButton = true
+    private val indexes = arrayOfNulls<Int>(5)
 
     fun sendPrompt(
         prompt: String
@@ -70,6 +68,7 @@ class BakingViewModel : ViewModel() {
                                     val recordingTitle = recordingsResultItem.recordings[index].title
                                     val recordingLink = recordingUrlsResult.relations[0].url.resource
                                     recordingTitleLink[recordingTitle] = recordingLink
+                                    indexes[i] = index
                                     break
                                 } else {
                                     var query = recordingsResultItem.recordings[index].title
@@ -88,14 +87,20 @@ class BakingViewModel : ViewModel() {
                                     )
                                     val video = response.items.firstOrNull()
                                     var recordingLink = "Not found on Youtube"
+                                    var youtubeVideoTitle = ""
                                     video?.let {
                                         recordingLink = "https://www.youtube.com/watch?v=${it.id.videoId}"
+                                        youtubeVideoTitle = it.snippet.title
                                     }
                                     val recordingTitle = recordingsResultItem.recordings[index].title
+                                    if (video == null || !youtubeVideoTitle.lowercase().contains(recordingTitle.lowercase())) {
+                                        index++
+                                        continue
+                                    }
                                     recordingTitleLink[recordingTitle + " by" + artistName] = recordingLink
+                                    indexes[i] = index
                                     break
                                 }
-                                index++
                             }
                         }
                     }
@@ -112,21 +117,21 @@ class BakingViewModel : ViewModel() {
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                iteration++
-
-                for (r in recordingsResult) {
+                for (i in recordingsResult.indices){
+                    indexes[i] = indexes[i]!! + 1
+                    var r = recordingsResult[i]
                     r?.let {
-                        while (r.recordings.size > 0 && iteration < r.recordings.size) {
-                            val recordingUrlsResult = RetrofitClient.api.getRecordingUrls(r.recordings[iteration].id)
+                        while (r.recordings.size > 0 && indexes[i]!! < r.recordings.size) {
+                            val recordingUrlsResult = RetrofitClient.api.getRecordingUrls(r.recordings[indexes[i]!!].id)
                             if (recordingUrlsResult.relations.size > 0) {
-                                val recordingTitle = r.recordings[iteration].title
+                                val recordingTitle = r.recordings[indexes[i]!!].title
                                 val recordingLink = recordingUrlsResult.relations[0].url.resource
                                 stateListRecordingTitleLink.add(Pair(recordingTitle, recordingLink))
                                 break
                             } else {
-                                var query = r.recordings[iteration].title
+                                var query = r.recordings[indexes[i]!!].title
                                 var artistName = ""
-                                for (artist in r.recordings[iteration].artistCredit) {
+                                for (artist in r.recordings[indexes[i]!!].artistCredit) {
                                     artistName = artistName + " " + artist.name
                                     query = query + " " + artist.name
                                 }
@@ -140,14 +145,19 @@ class BakingViewModel : ViewModel() {
                                 )
                                 val video = response.items.firstOrNull()
                                 var recordingLink = "Not found on Youtube"
+                                var youtubeVideoTitle = ""
                                 video?.let {
                                     recordingLink = "https://www.youtube.com/watch?v=${it.id.videoId}"
+                                    youtubeVideoTitle = it.snippet.title
                                 }
-                                val recordingTitle = r.recordings[iteration].title
+                                val recordingTitle = r.recordings[indexes[i]!!].title
+                                if (video == null || !youtubeVideoTitle.lowercase().contains(recordingTitle.lowercase())) {
+                                    indexes[i] = indexes[i]!! + 1
+                                    continue
+                                }
                                 stateListRecordingTitleLink.add(Pair(recordingTitle + " by" + artistName, recordingLink))
                                 break
                             }
-                            iteration++
                         }
                     }
                 }

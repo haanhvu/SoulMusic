@@ -49,6 +49,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+private var moreButtonClicked = 0
+
 @Composable
 fun SongItem(
     title: String,
@@ -88,6 +90,7 @@ fun SongList(
 ) {
     val stateMapRecordingTitleLink = remember { mutableStateMapOf<String, String>().apply { putAll(bakingViewModel.recordingTitleLink) } }
     val stateListRecordingTitleLink = remember { mutableStateListOf<Pair<String, String>>().apply { addAll(bakingViewModel.recordingTitleLink.toList()) } }
+    var noMore by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = Modifier
@@ -107,16 +110,25 @@ fun SongList(
         }*/
 
         item {
-            // "More" button at the end
-            Button(
-                onClick = {
-                    bakingViewModel.addMoreResults(stateListRecordingTitleLink)
-                          },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text("More")
+            if (!noMore) {
+                Button(
+                    onClick = {
+                        moreButtonClicked++
+                        if (moreButtonClicked > 3) {
+                            noMore = true
+                        } else {
+                            bakingViewModel.addMoreResults(stateListRecordingTitleLink)
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text("More")
+                }
+            } else {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("The limit is set at 20 results per prompt in the alpha version.")
             }
         }
     }
