@@ -26,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -179,6 +180,8 @@ fun BakingScreen(
     var result by rememberSaveable { mutableStateOf(placeholderResult) }
     val uiState by bakingViewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val options = listOf("Popular", "Lesser-known")
+    var selectedOption by remember { mutableStateOf(options[1]) }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -204,7 +207,11 @@ fun BakingScreen(
 
             Button(
                 onClick = {
-                    bakingViewModel.sendPrompt(prompt)
+                    if (selectedOption.equals(options[1])) {
+                        bakingViewModel.sendPromptToMusicBrainz(prompt)
+                    } else if (selectedOption.equals(options[0])) {
+                        bakingViewModel.sendPromptToAI(prompt)
+                    }
                 },
                 enabled = prompt.isNotEmpty(),
                 modifier = Modifier
@@ -214,7 +221,24 @@ fun BakingScreen(
             }
         }
 
-        val buttonLabels = listOf("Yes", "Maybe", "Cancel", "Continue", "OK", "I'm finding answer")
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp) // spacing between items
+        ) {
+            options.forEach { option ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = (option == selectedOption),
+                        onClick = { selectedOption = option }
+                    )
+                    Text(option)
+                }
+            }
+        }
+
+        val buttonLabels = listOf("Yes", "Maybe", "Cancel", "Continue", "OK", "Haven't enabled popular results yet")
         FlowRow(
             modifier = Modifier
                 .fillMaxWidth()
@@ -225,7 +249,7 @@ fun BakingScreen(
             buttonLabels.forEach { label ->
                 Button(onClick = {
                     prompt = label
-                    bakingViewModel.sendPrompt(prompt)
+                    bakingViewModel.sendPromptToMusicBrainz(prompt)
                 }) {
                     Text(text = label)
                 }

@@ -34,7 +34,34 @@ class BakingViewModel : ViewModel() {
 
     private val indexes = arrayOfNulls<Int>(5)
 
-    fun sendPrompt(
+    fun sendPromptToAI(
+        prompt: String
+    ) {
+        _uiState.value = UiState.Loading
+
+        recordingTitleLink.clear()
+
+        val newPrompt = prompt + ". Give me five results of music that can help me in this case. Only answer title - artist separated by commas, nothing else."
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val response = generativeModel.generateContent(
+                    content {
+                        text(newPrompt)
+                    }
+                )
+
+                response.text?.let { outputContent ->
+                    recordingTitleLink["Result"] = outputContent
+                    _uiState.value = UiState.Success(recordingTitleLink)
+                }
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error(e.localizedMessage ?: "" + " at BakingViewModel.")
+            }
+        }
+    }
+
+    fun sendPromptToMusicBrainz(
         prompt: String
     ) {
         _uiState.value = UiState.Loading
