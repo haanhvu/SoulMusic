@@ -30,7 +30,8 @@ class BakingViewModel : ViewModel() {
 
     private val recordingsResult = arrayOfNulls<MusicBrainzResponse>(5)
 
-    val recordingTitleLink = mutableMapOf<String, String>()
+    var recordingTitleLink = mutableMapOf<String, String>()
+    private val fullRecordingTitleLink = mutableMapOf<String, String>()
 
     private val indexes = arrayOfNulls<Int>(5)
 
@@ -41,7 +42,7 @@ class BakingViewModel : ViewModel() {
 
         recordingTitleLink.clear()
 
-        val newPrompt = prompt + ". Give me five results of music that can help me in this case. Only answer title - artist separated by commas, nothing else."
+        val newPrompt = prompt + ". Give me twenty results of music that can help me in this case. Only answer title - artist separated by commas, nothing else."
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -68,8 +69,9 @@ class BakingViewModel : ViewModel() {
                         video?.let {
                             recordingLink = "https://www.youtube.com/watch?v=${it.id.videoId}"
                         }
-                        recordingTitleLink[item] = recordingLink
+                        fullRecordingTitleLink[item] = recordingLink
                     }
+                    recordingTitleLink = fullRecordingTitleLink.entries.take(5).associateTo(mutableMapOf()) { it.toPair() }
                     _uiState.value = UiState.Success(recordingTitleLink)
                 }
             } catch (e: Exception) {
@@ -157,6 +159,24 @@ class BakingViewModel : ViewModel() {
     }
 
     fun addMoreResults(
+        shot: Int,
+        stateListRecordingTitleLink: SnapshotStateList<Pair<String, String>>
+    ) {
+        if (!fullRecordingTitleLink.isEmpty()) {
+            addMorePopularResults(shot, stateListRecordingTitleLink)
+        } else {
+            addMoreLesserKnownResults(stateListRecordingTitleLink)
+        }
+    }
+
+    fun addMorePopularResults(
+        shot: Int,
+        stateListRecordingTitleLink: SnapshotStateList<Pair<String, String>>
+    ) {
+        stateListRecordingTitleLink.addAll(fullRecordingTitleLink.entries.toList().subList(shot*5, shot*10).map { it.key to it.value })
+    }
+
+    fun addMoreLesserKnownResults(
         stateListRecordingTitleLink: SnapshotStateList<Pair<String, String>>
     ) {
         viewModelScope.launch(Dispatchers.IO) {

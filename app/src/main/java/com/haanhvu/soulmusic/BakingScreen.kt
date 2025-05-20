@@ -118,7 +118,7 @@ fun SongList(
                         if (moreButtonClicked > 3) {
                             noMore = true
                         } else {
-                            bakingViewModel.addMoreResults(stateListRecordingTitleLink)
+                            bakingViewModel.addMoreResults(moreButtonClicked, stateListRecordingTitleLink)
                         }
                     },
                     modifier = Modifier
