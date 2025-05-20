@@ -52,7 +52,24 @@ class BakingViewModel : ViewModel() {
                 )
 
                 response.text?.let { outputContent ->
-                    recordingTitleLink["Result"] = outputContent
+                    val cleanOutput = outputContent.replace("\"", "")
+                    val titleArtist = cleanOutput.split(",")
+                    for (item in titleArtist) {
+                        val retrofit = Retrofit.Builder()
+                            .baseUrl("https://www.googleapis.com/youtube/v3/")
+                            .addConverterFactory(MoshiConverterFactory.create(RetrofitClient.moshi))
+                            .build()
+                        val youTubeApiService = retrofit.create(YouTubeApiService::class.java)
+                        val response = youTubeApiService.searchVideos(
+                            query = item
+                        )
+                        val video = response.items.firstOrNull()
+                        var recordingLink = "Not found on Youtube"
+                        video?.let {
+                            recordingLink = "https://www.youtube.com/watch?v=${it.id.videoId}"
+                        }
+                        recordingTitleLink[item] = recordingLink
+                    }
                     _uiState.value = UiState.Success(recordingTitleLink)
                 }
             } catch (e: Exception) {
