@@ -30,6 +30,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -41,6 +42,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -49,6 +52,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.delay
 
 private var moreButtonClicked = 0
 
@@ -180,8 +184,16 @@ fun BakingScreen(
     var result by rememberSaveable { mutableStateOf(placeholderResult) }
     val uiState by bakingViewModel.uiState.collectAsState()
     val context = LocalContext.current
-    val options = listOf("Popular", "Lesser-known")
+    val options = listOf("Popular", "Hidden gems")
     var selectedOption by remember { mutableStateOf(options[1]) }
+    val focusRequester = remember { FocusRequester() }
+
+    // Automatically request focus when the composable enters the composition
+    LaunchedEffect(Unit) {
+        // optional delay can help in some cases to ensure the view is ready
+        delay(100)
+        focusRequester.requestFocus()
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -204,6 +216,7 @@ fun BakingScreen(
                     .weight(0.8f)
                     .padding(end = 16.dp)
                     .align(Alignment.CenterVertically)
+                    .focusRequester(focusRequester)
             )
 
             Button(
