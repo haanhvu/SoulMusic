@@ -41,6 +41,7 @@ class BakingViewModel : ViewModel() {
         _uiState.value = UiState.Loading
 
         recordingTitleLink.clear()
+        fullRecordingTitleLink.clear()
 
         val newPrompt = prompt + ". Give me twenty results of music that can help me in this case. Only answer title - artist separated by commas, nothing else."
 
@@ -70,6 +71,7 @@ class BakingViewModel : ViewModel() {
                             recordingLink = "https://www.youtube.com/watch?v=${it.id.videoId}"
                         }
                         fullRecordingTitleLink[item] = recordingLink
+                        //fullRecordingTitleLink[item] = "Some link"
                     }
                     recordingTitleLink = fullRecordingTitleLink.entries.take(5).associateTo(mutableMapOf()) { it.toPair() }
                     _uiState.value = UiState.Success(recordingTitleLink)
@@ -86,6 +88,7 @@ class BakingViewModel : ViewModel() {
         _uiState.value = UiState.Loading
 
         recordingTitleLink.clear()
+        fullRecordingTitleLink.clear()
 
         val newPrompt = prompt + ". Give me five most accurate keywords to search for the music that can help me in this case. Only answer those keywords, separated by commas.";
 
@@ -144,6 +147,7 @@ class BakingViewModel : ViewModel() {
                                         continue
                                     }
                                     recordingTitleLink[recordingTitle + " by" + artistName] = recordingLink
+                                    //recordingTitleLink[recordingsResultItem.recordings[index].title] = "Some link"
                                     indexes[i] = index
                                     break
                                 }
@@ -173,7 +177,7 @@ class BakingViewModel : ViewModel() {
         shot: Int,
         stateListRecordingTitleLink: SnapshotStateList<Pair<String, String>>
     ) {
-        stateListRecordingTitleLink.addAll(fullRecordingTitleLink.entries.toList().subList(shot*5, shot*10).map { it.key to it.value })
+        stateListRecordingTitleLink.addAll(fullRecordingTitleLink.entries.toList().subList(shot*5, shot*5+5).map { it.key to it.value })
     }
 
     fun addMoreLesserKnownResults(
@@ -219,7 +223,7 @@ class BakingViewModel : ViewModel() {
                                     indexes[i] = indexes[i]!! + 1
                                     continue
                                 }
-                                stateListRecordingTitleLink.add(Pair(recordingTitle + " by" + artistName, recordingLink))
+                                //stateListRecordingTitleLink.add(Pair(r.recordings[indexes[i]!!].title, "Some link"))
                                 break
                             }
                         }

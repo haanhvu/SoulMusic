@@ -208,8 +208,10 @@ fun BakingScreen(
             Button(
                 onClick = {
                     if (selectedOption.equals(options[1])) {
+                        moreButtonClicked = 0
                         bakingViewModel.sendPromptToMusicBrainz(prompt)
                     } else if (selectedOption.equals(options[0])) {
+                        moreButtonClicked = 0
                         bakingViewModel.sendPromptToAI(prompt)
                     }
                 },
