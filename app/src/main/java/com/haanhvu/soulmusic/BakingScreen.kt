@@ -174,9 +174,9 @@ fun BakingScreen(
     bakingViewModel: BakingViewModel = viewModel()
 ) {
     //val selectedImage = remember { mutableIntStateOf(0) }
-    val placeholderPrompt = stringResource(R.string.prompt_placeholder)
+    //val placeholderPrompt = stringResource(R.string.prompt_placeholder)
     val placeholderResult = stringResource(R.string.results_placeholder)
-    var prompt by rememberSaveable { mutableStateOf(placeholderPrompt) }
+    var prompt by rememberSaveable { mutableStateOf("") }
     var result by rememberSaveable { mutableStateOf(placeholderResult) }
     val uiState by bakingViewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -199,6 +199,7 @@ fun BakingScreen(
                 value = prompt,
                 label = { Text(stringResource(R.string.label_prompt)) },
                 onValueChange = { prompt = it },
+                placeholder = { Text("What do you need to hear now?") },
                 modifier = Modifier
                     .weight(0.8f)
                     .padding(end = 16.dp)
