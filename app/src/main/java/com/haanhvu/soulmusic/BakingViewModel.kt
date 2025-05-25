@@ -43,7 +43,7 @@ class BakingViewModel : ViewModel() {
         recordingTitleLink.clear()
         fullRecordingTitleLink.clear()
 
-        val newPrompt = prompt + ". Give me twenty results of music that can help me in this case. Only answer title - artist separated by commas, nothing else."
+        val newPrompt = prompt + ". Give me twenty results of music that can help me in this case. Only answer each result as title - artist, separate results by semicolons, nothing else."
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -54,9 +54,14 @@ class BakingViewModel : ViewModel() {
                 )
 
                 response.text?.let { outputContent ->
+                    Log.e("BakingViewModel", "20 results: " + outputContent)
                     val cleanOutput = outputContent.replace("\"", "")
-                    val titleArtist = cleanOutput.split(",")
+                    val titleArtist = cleanOutput.split(";")
                     for (item in titleArtist) {
+                        //if (fullRecordingTitleLink.size >= 5) {
+                            fullRecordingTitleLink[item] = "Some linkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+                            continue
+                        //}
                         val retrofit = Retrofit.Builder()
                             .baseUrl("https://www.googleapis.com/youtube/v3/")
                             .addConverterFactory(MoshiConverterFactory.create(RetrofitClient.moshi))
@@ -71,7 +76,6 @@ class BakingViewModel : ViewModel() {
                             recordingLink = "https://www.youtube.com/watch?v=${it.id.videoId}"
                         }
                         fullRecordingTitleLink[item] = recordingLink
-                        //fullRecordingTitleLink[item] = "Some link"
                     }
                     recordingTitleLink = fullRecordingTitleLink.entries.take(5).associateTo(mutableMapOf()) { it.toPair() }
                     _uiState.value = UiState.Success(recordingTitleLink)
@@ -124,9 +128,9 @@ class BakingViewModel : ViewModel() {
                                     var artistName = ""
                                     for (artist in recordingsResultItem.recordings[index].artistCredit) {
                                         artistName = artistName + " " + artist.name
-                                        query = query + " " + artist.name
                                     }
-                                    val retrofit = Retrofit.Builder()
+                                    query = query + " -" + artistName
+                                    /*val retrofit = Retrofit.Builder()
                                         .baseUrl("https://www.googleapis.com/youtube/v3/")
                                         .addConverterFactory(MoshiConverterFactory.create(RetrofitClient.moshi))
                                         .build()
@@ -146,8 +150,8 @@ class BakingViewModel : ViewModel() {
                                         index++
                                         continue
                                     }
-                                    recordingTitleLink[recordingTitle + " by" + artistName] = recordingLink
-                                    //recordingTitleLink[recordingsResultItem.recordings[index].title] = "Some link"
+                                    recordingTitleLink[query] = recordingLink*/
+                                    recordingTitleLink[query] = "Some linkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
                                     indexes[i] = index
                                     break
                                 }
@@ -177,7 +181,34 @@ class BakingViewModel : ViewModel() {
         shot: Int,
         stateListRecordingTitleLink: SnapshotStateList<Pair<String, String>>
     ) {
-        stateListRecordingTitleLink.addAll(fullRecordingTitleLink.entries.toList().subList(shot*5, shot*5+5).map { it.key to it.value })
+        /*viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val fullRecordingTitleLinkList = fullRecordingTitleLink.entries.toList()
+
+                for ((title, _) in fullRecordingTitleLinkList.slice(shot * 5..shot * 5 + 4)) {
+                    val retrofit = Retrofit.Builder()
+                        .baseUrl("https://www.googleapis.com/youtube/v3/")
+                        .addConverterFactory(MoshiConverterFactory.create(RetrofitClient.moshi))
+                        .build()
+                    val youTubeApiService = retrofit.create(YouTubeApiService::class.java)
+                    val response = youTubeApiService.searchVideos(
+                        query = title
+                    )
+                    val video = response.items.firstOrNull()
+                    var recordingLink = "Not found on Youtube"
+                    video?.let {
+                        recordingLink = "https://www.youtube.com/watch?v=${it.id.videoId}"
+                    }
+                    fullRecordingTitleLink[title] = recordingLink
+                }*/
+
+                stateListRecordingTitleLink.addAll(
+                    fullRecordingTitleLink.entries.toList().subList(shot * 5, shot * 5 + 5)
+                        .map { it.key to it.value })
+            /*} catch (e: Exception) {
+                _uiState.value = UiState.Error(e.localizedMessage ?: "" + " at BakingViewModel.")
+            }
+        }*/
     }
 
     fun addMoreLesserKnownResults(
@@ -201,9 +232,9 @@ class BakingViewModel : ViewModel() {
                                 var artistName = ""
                                 for (artist in r.recordings[indexes[i]!!].artistCredit) {
                                     artistName = artistName + " " + artist.name
-                                    query = query + " " + artist.name
                                 }
-                                val retrofit = Retrofit.Builder()
+                                query = query + " -" + artistName
+                                /*val retrofit = Retrofit.Builder()
                                     .baseUrl("https://www.googleapis.com/youtube/v3/")
                                     .addConverterFactory(MoshiConverterFactory.create(RetrofitClient.moshi))
                                     .build()
@@ -222,8 +253,8 @@ class BakingViewModel : ViewModel() {
                                 if (video == null || !youtubeVideoTitle.lowercase().contains(recordingTitle.lowercase())) {
                                     indexes[i] = indexes[i]!! + 1
                                     continue
-                                }
-                                //stateListRecordingTitleLink.add(Pair(r.recordings[indexes[i]!!].title, "Some link"))
+                                }*/
+                                stateListRecordingTitleLink.add(Pair(query, "Some linkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"))
                                 break
                             }
                         }

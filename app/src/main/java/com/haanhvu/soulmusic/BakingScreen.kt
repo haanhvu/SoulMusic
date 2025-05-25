@@ -45,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -63,13 +64,22 @@ fun SongItem(
 ) {
     val context = LocalContext.current
 
+    val titleArtist = title.split(" - ")
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
     ) {
         Text(
-            text = title,
+            text = titleArtist[0],
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = Int.MAX_VALUE,
+            softWrap = true
+        )
+
+        Text(
+            text = titleArtist[1],
             style = MaterialTheme.typography.titleMedium,
             maxLines = Int.MAX_VALUE,
             softWrap = true
@@ -185,8 +195,9 @@ fun BakingScreen(
     val uiState by bakingViewModel.uiState.collectAsState()
     val context = LocalContext.current
     val options = listOf("Popular", "Hidden gems")
-    var selectedOption by remember { mutableStateOf(options[1]) }
+    var selectedOption by remember { mutableStateOf(options[0]) }
     val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
 
     // Automatically request focus when the composable enters the composition
     LaunchedEffect(Unit) {
@@ -221,6 +232,8 @@ fun BakingScreen(
 
             Button(
                 onClick = {
+                    moreButtonClicked = 0
+                    focusManager.clearFocus()
                     if (selectedOption.equals(options[1])) {
                         moreButtonClicked = 0
                         bakingViewModel.sendPromptToMusicBrainz(prompt)
@@ -254,7 +267,12 @@ fun BakingScreen(
             }
         }
 
-        val buttonLabels = listOf("Yes", "Maybe", "Cancel", "Continue", "OK", "Haven't enabled popular results yet")
+        val buttonLabels = listOf(
+            "I feel lost. I don't know what to do. Give me clarity",
+            "I'm tired. Boost my energy up",
+            "I need motivation",
+            "Clean my negative energy",
+            "I need comfort",)
         FlowRow(
             modifier = Modifier
                 .fillMaxWidth()
@@ -264,8 +282,14 @@ fun BakingScreen(
         ) {
             buttonLabels.forEach { label ->
                 Button(onClick = {
+                    moreButtonClicked = 0
+                    focusManager.clearFocus()
                     prompt = label
-                    bakingViewModel.sendPromptToMusicBrainz(prompt)
+                    if (selectedOption.equals(options[1])) {
+                        bakingViewModel.sendPromptToMusicBrainz(prompt)
+                    } else if (selectedOption.equals(options[0])) {
+                        bakingViewModel.sendPromptToAI(prompt)
+                    }
                 }) {
                     Text(text = label)
                 }
