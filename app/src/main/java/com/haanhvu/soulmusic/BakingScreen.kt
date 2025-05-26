@@ -49,13 +49,28 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 
 private var moreButtonClicked = 0
+
+@Composable
+fun IconRowWithEmojis() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        Text(text = "🎶", fontSize = 20.sp)
+        Text(text = "🎤", fontSize = 20.sp)
+        Text(text = "🔗", fontSize = 20.sp)
+    }
+}
 
 @Composable
 fun SongItem(
@@ -64,37 +79,53 @@ fun SongItem(
 ) {
     val context = LocalContext.current
 
+    val ltrMark = "\u200E"
+
     val titleArtist = title.split(" - ")
+
+    val title = titleArtist[0]
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(vertical = 12.dp, horizontal = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(
-            text = titleArtist[0],
-            style = MaterialTheme.typography.titleMedium,
-            maxLines = Int.MAX_VALUE,
-            softWrap = true
-        )
+        Box(
+            modifier = Modifier
+                .weight(2f)
+                .fillMaxHeight(),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Text(
+                text = "$ltrMark$title",
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Start,
+                maxLines = Int.MAX_VALUE,
+                softWrap = true
+            )
+        }
 
         Text(
             text = titleArtist[1],
             style = MaterialTheme.typography.titleMedium,
             maxLines = Int.MAX_VALUE,
-            softWrap = true
+            softWrap = true,
+            modifier = Modifier.weight(2f),
+            textAlign = TextAlign.Start
         )
 
         Text(
-            text = link,
+            text = "Youtube",
             color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Start,
             modifier = Modifier
+                .weight(1f)
                 .clickable {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     ContextCompat.startActivity(context, intent, null)
                 }
-                //.padding(top = 4.dp),
         )
     }
 }
@@ -316,6 +347,7 @@ fun BakingScreen(
                         .verticalScroll(scrollState)
                 )
             } else if (uiState is UiState.Success) {
+                IconRowWithEmojis()
                 Column(modifier = Modifier.fillMaxSize()) {
                     SongList(bakingViewModel)
                 }
