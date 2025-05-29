@@ -21,7 +21,7 @@ sealed interface UiState {
     data class Success(val output: Map<String, String>) : UiState
 
     /**
-     * There was an error generating text
+     * There was an error generating data
      */
     data class Error(val errorMessage: String) : UiState
 }

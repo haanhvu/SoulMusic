@@ -1,7 +1,6 @@
 package com.haanhvu.soulmusic
 
 import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
@@ -33,7 +32,7 @@ data class RecordingUrlsResponse(
     val title: String,
     val length: Long?,
     val video: Boolean,
-    val relations: List<Relation> = emptyList()
+    val relations: List<Relation>
 )
 
 data class Relation(

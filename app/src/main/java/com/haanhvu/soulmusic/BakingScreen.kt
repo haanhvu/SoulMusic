@@ -241,7 +241,7 @@ fun BakingScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         Text(
-            text = stringResource(R.string.baking_title),
+            text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(16.dp)
         )
