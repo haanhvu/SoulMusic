@@ -122,9 +122,9 @@ fun SongItem(
 
 @Composable
 fun SongList(
-    bakingViewModel: BakingViewModel
+    soulMusicViewModel: SoulMusicViewModel
 ) {
-    val stateListRecordingTitleLink = remember { mutableStateListOf<Pair<String, String>>().apply { addAll(bakingViewModel.recordingTitleLink.toList()) } }
+    val stateListRecordingTitleLink = remember { mutableStateListOf<Pair<String, String>>().apply { addAll(soulMusicViewModel.recordingTitleLink.toList()) } }
     var noMore by remember { mutableStateOf(false) }
 
     LazyColumn(
@@ -144,7 +144,7 @@ fun SongList(
                         if (moreButtonClicked > 3) {
                             noMore = true
                         } else {
-                            bakingViewModel.addMoreResults(moreButtonClicked, stateListRecordingTitleLink)
+                            soulMusicViewModel.addMoreResults(moreButtonClicked, stateListRecordingTitleLink)
                         }
                     },
                     modifier = Modifier
@@ -163,13 +163,15 @@ fun SongList(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun BakingScreen(
-    bakingViewModel: BakingViewModel = viewModel()
+fun SoulMusicView(
+    apiKey: String,
+    soulMusicViewModel: SoulMusicViewModel = viewModel()
 ) {
+    soulMusicViewModel.apiKey = apiKey
     val placeholderResult = stringResource(R.string.results_placeholder)
     var prompt by rememberSaveable { mutableStateOf("") }
     var result by rememberSaveable { mutableStateOf(placeholderResult) }
-    val uiState by bakingViewModel.uiState.collectAsState()
+    val uiState by soulMusicViewModel.uiState.collectAsState()
     val options = listOf("Popular", "Hidden gems")
     var selectedOption by remember { mutableStateOf(options[0]) }
     val focusRequester = remember { FocusRequester() }
@@ -211,9 +213,9 @@ fun BakingScreen(
                     moreButtonClicked = 0
                     focusManager.clearFocus()
                     if (selectedOption.equals(options[1])) {
-                        bakingViewModel.sendPromptToMusicBrainz(prompt)
+                        soulMusicViewModel.sendPromptToGetHiddenGems(prompt)
                     } else if (selectedOption.equals(options[0])) {
-                        bakingViewModel.sendPromptToAI(prompt)
+                        soulMusicViewModel.sendPromptToGetPopularResults(prompt)
                     }
                 },
                 enabled = prompt.isNotEmpty(),
@@ -260,9 +262,9 @@ fun BakingScreen(
                     focusManager.clearFocus()
                     prompt = label
                     if (selectedOption.equals(options[1])) {
-                        bakingViewModel.sendPromptToMusicBrainz(prompt)
+                        soulMusicViewModel.sendPromptToGetHiddenGems(prompt)
                     } else if (selectedOption.equals(options[0])) {
-                        bakingViewModel.sendPromptToAI(prompt)
+                        soulMusicViewModel.sendPromptToGetPopularResults(prompt)
                     }
                 }) {
                     Text(text = label)
@@ -291,7 +293,7 @@ fun BakingScreen(
             } else if (uiState is UiState.Success) {
                 IconRowWithEmojis()
                 Column(modifier = Modifier.fillMaxSize()) {
-                    SongList(bakingViewModel)
+                    SongList(soulMusicViewModel)
                 }
             }
         }
@@ -300,6 +302,6 @@ fun BakingScreen(
 
 @Preview(showSystemUi = true)
 @Composable
-fun BakingScreenPreview() {
-    BakingScreen()
+fun SoulMusicPreview() {
+    SoulMusicView("test")
 }

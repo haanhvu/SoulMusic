@@ -49,7 +49,7 @@ data class Url(
 // Retrofit API interface
 interface MusicBrainzApi {
     @GET("ws/2/recording/")
-    suspend fun searchSongsByTag(
+    suspend fun searchRecordingsByTag(
         @Query("query") tag: String,
         @Query("fmt") format: String = "json"
     ): MusicBrainzResponse

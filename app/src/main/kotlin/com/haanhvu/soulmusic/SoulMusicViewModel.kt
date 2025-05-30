@@ -2,12 +2,9 @@ package com.haanhvu.soulmusic
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import android.util.Log
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
-import com.google.firebase.functions.ktx.functions
-import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,16 +13,11 @@ import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
-class BakingViewModel : ViewModel() {
+class SoulMusicViewModel : ViewModel() {
     private val _uiState: MutableStateFlow<UiState> =
         MutableStateFlow(UiState.Initial)
     val uiState: StateFlow<UiState> =
         _uiState.asStateFlow()
-
-    private val generativeModel = GenerativeModel(
-        modelName = "gemini-1.5-flash",
-        apiKey = BuildConfig.apiKey
-    )
 
     private val recordingsResult = arrayOfNulls<MusicBrainzResponse>(5)
 
@@ -34,37 +26,9 @@ class BakingViewModel : ViewModel() {
 
     private val indexes = arrayOfNulls<Int>(5)
 
-    fun useFirebase(
-        query: String
-    ) : String {
-        val functions = Firebase.functions
+    var apiKey = ""
 
-        val data = hashMapOf("query" to query)
-
-        var videoId = ""
-
-        functions
-            .getHttpsCallable("searchYoutube")
-            .call(data)
-            .addOnSuccessListener { result ->
-                val youtubeResponse = result.data as Map<*, *>
-                val items = youtubeResponse["items"] as? List<*>
-
-                val item = items?.firstOrNull() as? Map<*, *>
-                val snippet = item?.get("snippet") as? Map<*, *>
-                val title = snippet?.get("title") as? String
-                val idMap = item?.get("id") as? Map<*, *>
-                val videoIdNullable = idMap?.get("videoId") as? String
-                videoId = videoIdNullable ?: "Not found on Youtube"
-            }
-            .addOnFailureListener { e ->
-                Log.e("YouTube", "Error: ${e.message}")
-            }
-
-        return videoId
-    }
-
-    fun sendPromptToAI(
+    fun sendPromptToGetPopularResults(
         prompt: String
     ) {
         _uiState.value = UiState.Loading
@@ -76,6 +40,11 @@ class BakingViewModel : ViewModel() {
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                val generativeModel = GenerativeModel(
+                    modelName = "gemini-1.5-flash",
+                    apiKey = apiKey
+                )
+
                 val response = generativeModel.generateContent(
                     content {
                         text(newPrompt)
@@ -83,40 +52,39 @@ class BakingViewModel : ViewModel() {
                 )
 
                 response.text?.let { outputContent ->
-                    Log.e("BakingViewModel", "20 results: " + outputContent)
                     val cleanOutput = outputContent.replace("\"", "")
-                    val titleArtist = cleanOutput.split(";")
-                    for (item in titleArtist) {
+                    val titleArtistList = cleanOutput.split(";")
+                    for (titleArtist in titleArtistList) {
                         if (fullRecordingTitleLink.size >= 5) {
-                            fullRecordingTitleLink[item] = "Some linkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+                            fullRecordingTitleLink[titleArtist] = "Some link"
                             continue
                         }
-                        /*val retrofit = Retrofit.Builder()
+                        val retrofit = Retrofit.Builder()
                             .baseUrl("https://www.googleapis.com/youtube/v3/")
                             .addConverterFactory(MoshiConverterFactory.create(RetrofitClient.moshi))
                             .build()
                         val youTubeApiService = retrofit.create(YouTubeApiService::class.java)
                         val response = youTubeApiService.searchVideos(
-                            query = item
+                            query = titleArtist,
+                            apiKey = apiKey,
                         )
                         val video = response.items.firstOrNull()
                         var recordingLink = "Not found on Youtube"
                         video?.let {
                             recordingLink = "https://www.youtube.com/watch?v=${it.id.videoId}"
                         }
-                        fullRecordingTitleLink[item] = recordingLink*/
-                        fullRecordingTitleLink[item] = useFirebase(item)
+                        fullRecordingTitleLink[titleArtist] = recordingLink
                     }
                     recordingTitleLink = fullRecordingTitleLink.entries.take(5).associateTo(mutableMapOf()) { it.toPair() }
                     _uiState.value = UiState.Success(recordingTitleLink)
                 }
             } catch (e: Exception) {
-                _uiState.value = UiState.Error(e.localizedMessage ?: "" + " at BakingViewModel.")
+                _uiState.value = UiState.Error(e.localizedMessage ?: "")
             }
         }
     }
 
-    fun sendPromptToMusicBrainz(
+    fun sendPromptToGetHiddenGems(
         prompt: String
     ) {
         _uiState.value = UiState.Loading
@@ -128,6 +96,11 @@ class BakingViewModel : ViewModel() {
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                val generativeModel = GenerativeModel(
+                    modelName = "gemini-1.5-flash",
+                    apiKey = apiKey
+                )
+
                 val response = generativeModel.generateContent(
                     content {
                         text(newPrompt)
@@ -135,17 +108,13 @@ class BakingViewModel : ViewModel() {
                 )
 
                 response.text?.let { outputContent ->
-                    Log.e("BakingViewModel", "Gemini output: " + outputContent)
                     val tags = outputContent.split(",").toTypedArray()
                     for (i in tags.indices) {
-                        recordingsResult[i] = RetrofitClient.api.searchSongsByTag("tag:" + tags[i])
+                        recordingsResult[i] = RetrofitClient.api.searchRecordingsByTag("tag:" + tags[i])
                         val recordingsResultItem = recordingsResult[i]
                         recordingsResultItem?.let {
-                            Log.e("BakingViewModel", "Recordings result: " + recordingsResultItem)
-                            Log.e("BakingViewModel", "Number of recordings: " + recordingsResultItem.recordings.size)
                             var index = 0
                             while (recordingsResultItem.recordings.size > 0 && index < recordingsResultItem.recordings.size) {
-                                Log.e("BakingViewModel", "Index: " + index)
                                 val recordingUrlsResult = RetrofitClient.api.getRecordingUrls(recordingsResultItem.recordings[index].id)
                                 if (recordingUrlsResult.relations.size > 0) {
                                     val recordingTitle = recordingsResultItem.recordings[index].title
@@ -166,7 +135,8 @@ class BakingViewModel : ViewModel() {
                                         .build()
                                     val youTubeApiService = retrofit.create(YouTubeApiService::class.java)
                                     val response = youTubeApiService.searchVideos(
-                                        query = query
+                                        query = query,
+                                        apiKey = apiKey,
                                     )
                                     val video = response.items.firstOrNull()
                                     var recordingLink = "Not found on Youtube"
@@ -181,7 +151,6 @@ class BakingViewModel : ViewModel() {
                                         continue
                                     }
                                     recordingTitleLink[query] = recordingLink
-                                    //recordingTitleLink[query] = "Some linkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
                                     indexes[i] = index
                                     break
                                 }
@@ -191,7 +160,7 @@ class BakingViewModel : ViewModel() {
                     _uiState.value = UiState.Success(recordingTitleLink)
                 }
             } catch (e: Exception) {
-                _uiState.value = UiState.Error(e.localizedMessage ?: "" + " at BakingViewModel.")
+                _uiState.value = UiState.Error(e.localizedMessage ?: "")
             }
         }
     }
@@ -203,7 +172,7 @@ class BakingViewModel : ViewModel() {
         if (!fullRecordingTitleLink.isEmpty()) {
             addMorePopularResults(shot, stateListRecordingTitleLink)
         } else {
-            addMoreLesserKnownResults(stateListRecordingTitleLink)
+            addMoreHiddenGems(stateListRecordingTitleLink)
         }
     }
 
@@ -222,7 +191,8 @@ class BakingViewModel : ViewModel() {
                         .build()
                     val youTubeApiService = retrofit.create(YouTubeApiService::class.java)
                     val response = youTubeApiService.searchVideos(
-                        query = title
+                        query = title,
+                        apiKey = apiKey,
                     )
                     val video = response.items.firstOrNull()
                     var recordingLink = "Not found on Youtube"
@@ -236,12 +206,12 @@ class BakingViewModel : ViewModel() {
                     fullRecordingTitleLink.entries.toList().subList(shot * 5, shot * 5 + 5)
                         .map { it.key to it.value })
             } catch (e: Exception) {
-                _uiState.value = UiState.Error(e.localizedMessage ?: "" + " at BakingViewModel.")
+                _uiState.value = UiState.Error(e.localizedMessage ?: "")
             }
         }
     }
 
-    fun addMoreLesserKnownResults(
+    fun addMoreHiddenGems(
         stateListRecordingTitleLink: SnapshotStateList<Pair<String, String>>
     ) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -275,7 +245,8 @@ class BakingViewModel : ViewModel() {
                                     .build()
                                 val youTubeApiService = retrofit.create(YouTubeApiService::class.java)
                                 val response = youTubeApiService.searchVideos(
-                                    query = query
+                                    query = query,
+                                    apiKey = apiKey,
                                 )
                                 val video = response.items.firstOrNull()
                                 var recordingLink = "Not found on Youtube"
@@ -295,7 +266,7 @@ class BakingViewModel : ViewModel() {
                     }
                 }
             } catch (e: Exception) {
-                _uiState.value = UiState.Error(e.localizedMessage ?: "" + " at BakingViewModel.")
+                _uiState.value = UiState.Error(e.localizedMessage ?: "")
             }
         }
     }
