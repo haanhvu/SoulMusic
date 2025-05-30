@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -54,10 +55,13 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.generativeai)
     implementation("androidx.compose.foundation:foundation-layout:1.4.3")
-    implementation("com.squareup.moshi:moshi-kotlin:1.15.0") // or latest
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.10.0")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
+    implementation("com.google.firebase:firebase-functions-ktx")
+    implementation(libs.firebase.common.ktx)
+    implementation(libs.firebase.functions.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

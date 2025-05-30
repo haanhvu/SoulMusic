@@ -1,14 +1,13 @@
 package com.haanhvu.soulmusic
 
-import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.util.Log
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import com.google.firebase.functions.ktx.functions
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +33,36 @@ class BakingViewModel : ViewModel() {
     private val fullRecordingTitleLink = mutableMapOf<String, String>()
 
     private val indexes = arrayOfNulls<Int>(5)
+
+    fun useFirebase(
+        query: String
+    ) : String {
+        val functions = Firebase.functions
+
+        val data = hashMapOf("query" to query)
+
+        var videoId = ""
+
+        functions
+            .getHttpsCallable("searchYoutube")
+            .call(data)
+            .addOnSuccessListener { result ->
+                val youtubeResponse = result.data as Map<*, *>
+                val items = youtubeResponse["items"] as? List<*>
+
+                val item = items?.firstOrNull() as? Map<*, *>
+                val snippet = item?.get("snippet") as? Map<*, *>
+                val title = snippet?.get("title") as? String
+                val idMap = item?.get("id") as? Map<*, *>
+                val videoIdNullable = idMap?.get("videoId") as? String
+                videoId = videoIdNullable ?: "Not found on Youtube"
+            }
+            .addOnFailureListener { e ->
+                Log.e("YouTube", "Error: ${e.message}")
+            }
+
+        return videoId
+    }
 
     fun sendPromptToAI(
         prompt: String
@@ -62,7 +91,7 @@ class BakingViewModel : ViewModel() {
                             fullRecordingTitleLink[item] = "Some linkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
                             continue
                         }
-                        val retrofit = Retrofit.Builder()
+                        /*val retrofit = Retrofit.Builder()
                             .baseUrl("https://www.googleapis.com/youtube/v3/")
                             .addConverterFactory(MoshiConverterFactory.create(RetrofitClient.moshi))
                             .build()
@@ -75,7 +104,8 @@ class BakingViewModel : ViewModel() {
                         video?.let {
                             recordingLink = "https://www.youtube.com/watch?v=${it.id.videoId}"
                         }
-                        fullRecordingTitleLink[item] = recordingLink
+                        fullRecordingTitleLink[item] = recordingLink*/
+                        fullRecordingTitleLink[item] = useFirebase(item)
                     }
                     recordingTitleLink = fullRecordingTitleLink.entries.take(5).associateTo(mutableMapOf()) { it.toPair() }
                     _uiState.value = UiState.Success(recordingTitleLink)

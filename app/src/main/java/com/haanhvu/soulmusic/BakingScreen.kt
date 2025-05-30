@@ -1,12 +1,8 @@
 package com.haanhvu.soulmusic
 
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,11 +12,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -33,9 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -46,10 +37,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,16 +63,17 @@ fun IconRowWithEmojis() {
 
 @Composable
 fun SongItem(
-    title: String,
+    titleArtist: String,
     link: String
 ) {
     val context = LocalContext.current
 
     val ltrMark = "\u200E"
 
-    val titleArtist = title.split(" - ")
+    val titleArtistList = titleArtist.split(" - ")
 
-    val title = titleArtist[0]
+    val title = titleArtistList[0]
+    val artist = titleArtistList[1]
 
     Row(
         modifier = Modifier
@@ -107,7 +97,7 @@ fun SongItem(
         }
 
         Text(
-            text = titleArtist[1],
+            text = artist,
             style = MaterialTheme.typography.titleMedium,
             maxLines = Int.MAX_VALUE,
             softWrap = true,
@@ -134,7 +124,6 @@ fun SongItem(
 fun SongList(
     bakingViewModel: BakingViewModel
 ) {
-    val stateMapRecordingTitleLink = remember { mutableStateMapOf<String, String>().apply { putAll(bakingViewModel.recordingTitleLink) } }
     val stateListRecordingTitleLink = remember { mutableStateListOf<Pair<String, String>>().apply { addAll(bakingViewModel.recordingTitleLink.toList()) } }
     var noMore by remember { mutableStateOf(false) }
 
@@ -146,14 +135,6 @@ fun SongList(
         items(stateListRecordingTitleLink) { (title, link) ->
             SongItem(title, link)
         }
-
-        /*if (bakingViewModel.showButton) {
-            // Add the button as the last item
-            item {
-                Spacer(modifier = Modifier.height(16.dp)) // spacing before the button
-                CenteredButton(bakingViewModel)
-            }
-        }*/
 
         item {
             if (!noMore) {
@@ -180,51 +161,15 @@ fun SongList(
     }
 }
 
-/*@Composable
-fun CenteredButton(
-    bakingViewModel: BakingViewModel
-) {
-    var enabledAddingSongs by remember { mutableStateOf(false) }
-    //var songsToShow by remember { mutableStateOf(emptyMap<String, String>()) }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
-    ) {
-        if (bakingViewModel.showButton) {
-            Button(onClick = {
-                bakingViewModel.showButton = false
-                enabledAddingSongs = true
-
-                //songsToShow = bakingViewModel.recordingTitleLink
-                //songsToShow = songsToShow + ("Title" to "https://example.com")
-            }) {
-                Text("More")
-            }
-        }
-        if (enabledAddingSongs) {
-            SongItem("New title", "New link")
-            bakingViewModel.recordingTitleLink["New title"] = "New link"
-        }
-    }
-    /*songsToShow.forEach { (title, link) ->
-        SongItem(title, link) // ✅ now it's valid
-    }*/
-}*/
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun BakingScreen(
     bakingViewModel: BakingViewModel = viewModel()
 ) {
-    //val selectedImage = remember { mutableIntStateOf(0) }
-    //val placeholderPrompt = stringResource(R.string.prompt_placeholder)
     val placeholderResult = stringResource(R.string.results_placeholder)
     var prompt by rememberSaveable { mutableStateOf("") }
     var result by rememberSaveable { mutableStateOf(placeholderResult) }
     val uiState by bakingViewModel.uiState.collectAsState()
-    val context = LocalContext.current
     val options = listOf("Popular", "Hidden gems")
     var selectedOption by remember { mutableStateOf(options[0]) }
     val focusRequester = remember { FocusRequester() }
@@ -253,7 +198,7 @@ fun BakingScreen(
                 value = prompt,
                 label = { Text(stringResource(R.string.label_prompt)) },
                 onValueChange = { prompt = it },
-                placeholder = { Text("What do you need to hear now?") },
+                placeholder = { Text(stringResource(R.string.prompt_placeholder)) },
                 modifier = Modifier
                     .weight(0.8f)
                     .padding(end = 16.dp)
@@ -266,10 +211,8 @@ fun BakingScreen(
                     moreButtonClicked = 0
                     focusManager.clearFocus()
                     if (selectedOption.equals(options[1])) {
-                        moreButtonClicked = 0
                         bakingViewModel.sendPromptToMusicBrainz(prompt)
                     } else if (selectedOption.equals(options[0])) {
-                        moreButtonClicked = 0
                         bakingViewModel.sendPromptToAI(prompt)
                     }
                 },
@@ -283,7 +226,7 @@ fun BakingScreen(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp) // spacing between items
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             options.forEach { option ->
                 Row(
@@ -330,9 +273,8 @@ fun BakingScreen(
         if (uiState is UiState.Loading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
         } else {
-            var textColor = MaterialTheme.colorScheme.onSurface
             if (uiState is UiState.Error) {
-                textColor = MaterialTheme.colorScheme.error
+                val textColor = MaterialTheme.colorScheme.error
                 result = (uiState as UiState.Error).errorMessage
 
                 val scrollState = rememberScrollState()
@@ -351,21 +293,7 @@ fun BakingScreen(
                 Column(modifier = Modifier.fillMaxSize()) {
                     SongList(bakingViewModel)
                 }
-
-                //textColor = MaterialTheme.colorScheme.onSurface
-                //result = (uiState as UiState.Success).outputText
             }
-            /*val scrollState = rememberScrollState()
-            Text(
-                text = result,
-                textAlign = TextAlign.Start,
-                color = textColor,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(16.dp)
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-            )*/
         }
     }
 }
