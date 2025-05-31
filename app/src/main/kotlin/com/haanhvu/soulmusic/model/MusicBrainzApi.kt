@@ -61,7 +61,7 @@ interface MusicBrainzApi {
     ): RecordingUrlsResponse
 }
 
-object RetrofitClientForMusicBrainz {
+object RetrofitClient {
     private const val BASE_URL = "https://musicbrainz.org/"
 
     val logging = HttpLoggingInterceptor().apply {
