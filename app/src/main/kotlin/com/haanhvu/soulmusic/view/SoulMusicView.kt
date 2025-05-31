@@ -1,4 +1,4 @@
-package com.haanhvu.soulmusic
+package com.haanhvu.soulmusic.view
 
 import android.content.Intent
 import android.net.Uri
@@ -44,6 +44,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.haanhvu.soulmusic.R
+import com.haanhvu.soulmusic.viewmodel.SoulMusicViewModel
+import com.haanhvu.soulmusic.viewmodel.UiState
 import kotlinx.coroutines.delay
 
 private var moreButtonClicked = 0
@@ -164,10 +167,8 @@ fun SongList(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SoulMusicView(
-    apiKey: String,
     soulMusicViewModel: SoulMusicViewModel = viewModel()
 ) {
-    soulMusicViewModel.apiKey = apiKey
     val placeholderResult = stringResource(R.string.results_placeholder)
     var prompt by rememberSaveable { mutableStateOf("") }
     var result by rememberSaveable { mutableStateOf(placeholderResult) }
@@ -177,9 +178,7 @@ fun SoulMusicView(
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
-    // Automatically request focus when the composable enters the composition
     LaunchedEffect(Unit) {
-        // optional delay can help in some cases to ensure the view is ready
         delay(100)
         focusRequester.requestFocus()
     }
@@ -303,5 +302,5 @@ fun SoulMusicView(
 @Preview(showSystemUi = true)
 @Composable
 fun SoulMusicPreview() {
-    SoulMusicView("test")
+    SoulMusicView()
 }

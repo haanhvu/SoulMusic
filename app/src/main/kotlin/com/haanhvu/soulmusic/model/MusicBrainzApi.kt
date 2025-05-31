@@ -1,4 +1,4 @@
-package com.haanhvu.soulmusic
+package com.haanhvu.soulmusic.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.Moshi
@@ -46,7 +46,6 @@ data class Url(
     val resource: String
 )
 
-// Retrofit API interface
 interface MusicBrainzApi {
     @GET("ws/2/recording/")
     suspend fun searchRecordingsByTag(
@@ -62,7 +61,6 @@ interface MusicBrainzApi {
     ): RecordingUrlsResponse
 }
 
-// Retrofit instance
 object RetrofitClient {
     private const val BASE_URL = "https://musicbrainz.org/"
 
@@ -88,7 +86,7 @@ object RetrofitClient {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(MoshiConverterFactory.create(moshi)) // Converts JSON to Kotlin data classes
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
             .create(MusicBrainzApi::class.java)
     }

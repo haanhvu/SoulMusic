@@ -1,10 +1,15 @@
-package com.haanhvu.soulmusic
+package com.haanhvu.soulmusic.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
+import com.haanhvu.soulmusic.model.YouTubeApiService
+import com.haanhvu.soulmusic.model.ApiKeyManager
+import com.haanhvu.soulmusic.model.MusicBrainzResponse
+import com.haanhvu.soulmusic.model.RetrofitClient
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,6 +32,12 @@ class SoulMusicViewModel : ViewModel() {
     private val indexes = arrayOfNulls<Int>(5)
 
     var apiKey = ""
+
+    init {
+        CoroutineScope(Dispatchers.Main).launch {
+            apiKey = ApiKeyManager().fetchApiKey()
+        }
+    }
 
     fun sendPromptToGetPopularResults(
         prompt: String
@@ -131,7 +142,8 @@ class SoulMusicViewModel : ViewModel() {
                                     query = query + " -" + artistName
                                     val retrofit = Retrofit.Builder()
                                         .baseUrl("https://www.googleapis.com/youtube/v3/")
-                                        .addConverterFactory(MoshiConverterFactory.create(RetrofitClient.moshi))
+                                        .addConverterFactory(MoshiConverterFactory.create(
+                                            RetrofitClient.moshi))
                                         .build()
                                     val youTubeApiService = retrofit.create(YouTubeApiService::class.java)
                                     val response = youTubeApiService.searchVideos(

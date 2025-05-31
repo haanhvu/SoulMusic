@@ -1,17 +1,16 @@
-package com.haanhvu.soulmusic
+package com.haanhvu.soulmusic.model
 
-import android.content.Context
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import kotlinx.coroutines.tasks.await
 
-class ApiKeyManager(context: Context) {
+class ApiKeyManager {
 
     private val remoteConfig = FirebaseRemoteConfig.getInstance()
 
     init {
         val configSettings = FirebaseRemoteConfigSettings.Builder()
-            .setMinimumFetchIntervalInSeconds(0)
+            .setMinimumFetchIntervalInSeconds(3600)
             .build()
         remoteConfig.setConfigSettingsAsync(configSettings)
     }

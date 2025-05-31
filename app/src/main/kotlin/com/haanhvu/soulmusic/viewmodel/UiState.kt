@@ -1,4 +1,4 @@
-package com.haanhvu.soulmusic
+package com.haanhvu.soulmusic.viewmodel
 
 /**
  * A sealed hierarchy describing the state of the text generation.

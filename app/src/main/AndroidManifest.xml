@@ -14,7 +14,7 @@
         android:name=".SoulMusicApp"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name=".view.SoulMusicActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.SoulMusic">
