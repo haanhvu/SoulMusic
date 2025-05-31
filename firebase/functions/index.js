@@ -21,6 +21,31 @@ exports.callGemini = functions.https.onRequest(async (req, res) => {
     res.json(geminiResponse.data);
   } catch (error) {
     console.error("Error calling Gemini:", error);
-    res.status(500).json({error: "Something went wrong"});
+    res.status(500).json({error: "Failed to fetch from Gemini API"});
+  }
+});
+
+exports.callYoutube = functions.https.onRequest(async (req, res) => {
+  try {
+    const query = req.body.query;
+
+    const youtubeResponse = await axios.get(
+        "https://www.googleapis.com/youtube/v3/search",
+        {
+          params: {
+            part: "snippet",
+            q: query,
+            type: "video",
+            maxResults: 1,
+            videoCategoryId: 10,
+            key: process.env.API_KEY,
+          },
+        },
+    );
+
+    res.json(youtubeResponse.data);
+  } catch (error) {
+    console.error("Error calling YouTube API:", error);
+    res.status(500).json({error: "Failed to fetch from YouTube API"});
   }
 });
