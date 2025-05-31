@@ -1,5 +1,6 @@
 package com.haanhvu.soulmusic.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -7,6 +8,7 @@ import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import com.haanhvu.soulmusic.model.YouTubeApiService
 import com.haanhvu.soulmusic.model.ApiKeyManager
+import com.haanhvu.soulmusic.model.GeminiApi
 import com.haanhvu.soulmusic.model.MusicBrainzResponse
 import com.haanhvu.soulmusic.model.RetrofitClient
 import kotlinx.coroutines.CoroutineScope
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
@@ -51,7 +54,7 @@ class SoulMusicViewModel : ViewModel() {
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val generativeModel = GenerativeModel(
+                /*val generativeModel = GenerativeModel(
                     modelName = "gemini-1.5-flash",
                     apiKey = apiKey
                 )
@@ -60,9 +63,30 @@ class SoulMusicViewModel : ViewModel() {
                     content {
                         text(newPrompt)
                     }
-                )
+                )*/
 
-                response.text?.let { outputContent ->
+                val retrofit = Retrofit.Builder()
+                    .baseUrl("https://us-central1-soulmusic-d8c81.cloudfunctions.net/")
+                    .addConverterFactory(MoshiConverterFactory.create(RetrofitClient.moshi))
+                    .build()
+
+                val geminiApi = retrofit.create(GeminiApi::class.java)
+
+                val response = geminiApi.callGemini(mapOf("prompt" to newPrompt))
+                Log.e("Gemini", "Raw response: " + response)
+                var text = ""
+                if (response.isSuccessful) {
+                    val body = response.body()?.string()
+                    val json = JSONObject(body)
+                    val candidates = json.getJSONArray("candidates")
+                    if (candidates.length() > 0) {
+                        val content = candidates.getJSONObject(0).getJSONObject("content")
+                        val parts = content.getJSONArray("parts")
+                        text = parts.getJSONObject(0).getString("text")
+                    }
+                }
+
+                text?.let { outputContent ->
                     val cleanOutput = outputContent.replace("\"", "")
                     val titleArtistList = cleanOutput.split(";")
                     for (titleArtist in titleArtistList) {
