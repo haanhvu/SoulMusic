@@ -10,4 +10,6 @@ Currently, the app is only distributed on Github Releases. Distribution on other
 
 Most APIs the app uses have limited usage quotas. Higher usage quotas are being requested. In the mean time, please pardon if you happen to use the app when some quota limit has been hit. It will return error messages in those cases.
 
+The app is in early stage so some edge cases haven't been handled yet. Those will be handled in later releases.
+
 Plan for new features and releases: To be updated.
