@@ -1,18 +1,15 @@
 package com.haanhvu.soulmusic.model
 
-import retrofit2.http.GET
-import retrofit2.http.Query
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.http.Body
+import retrofit2.http.POST
 
-interface YouTubeApiService {
-    @GET("search")
-    suspend fun searchVideos(
-        @Query("part") part: String = "snippet",
-        @Query("q") query: String,
-        @Query("type") type: String = "video",
-        @Query("maxResults") maxResults: Int = 1,
-        @Query("videoCategoryId") videoCategoryId: Int = 10,
-        @Query("key") apiKey: String
-    ): YouTubeSearchResponse
+interface YoutubeApi {
+    @POST("callYoutube")
+    suspend fun callYoutube(@Body request: Map<String, String>): YouTubeSearchResponse
 }
 
 data class YouTubeSearchResponse(
@@ -32,3 +29,19 @@ data class Snippet(
     val title: String,
     val channelTitle: String
 )
+
+object RetrofitClientForYoutube {
+    private const val BASE_URL = "https://us-central1-soulmusic-d8c81.cloudfunctions.net/"
+
+    val moshi = Moshi.Builder()
+        .add(KotlinJsonAdapterFactory())
+        .build()
+
+    val api: YoutubeApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(YoutubeApi::class.java)
+    }
+}
