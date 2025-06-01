@@ -8,6 +8,6 @@ Currently, SoulMusic returns 20 results at maximum for each search. In later rel
 
 Currently, the app is only distributed on Github Releases. Distribution on other platforms is in plan.
 
-Most APIs the app uses have limited quota usages. Higher quota usages are being requested. In the mean time, please pardon if you happen to use the app when some quota has run out. It will return error messages in that case.
+Most APIs the app uses have limited usage quotas. Higher usage quotas are being requested. In the mean time, please pardon if you happen to use the app when some quota limit has been hit. It will return error messages in those cases.
 
 Plan for new features and releases: To be updated.
