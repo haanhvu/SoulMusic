@@ -11,7 +11,6 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-// Data model for API response
 data class MusicBrainzResponse(
     val recordings: List<Recording>
 )
@@ -61,7 +60,7 @@ interface MusicBrainzApi {
     ): RecordingUrlsResponse
 }
 
-object RetrofitClient {
+object RetrofitClientForMusicBrainz {
     private const val BASE_URL = "https://musicbrainz.org/"
 
     val logging = HttpLoggingInterceptor().apply {
