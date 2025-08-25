@@ -4,7 +4,7 @@ https://github.com/user-attachments/assets/6ae2020c-e305-4cb1-8ed0-3e5a4bdb8ca7
 
 
 
-SoulMusic is an Android mobile app that lets users search for music for their own need.
+SoulMusic is an Android mobile app that lets users search for music for arbitrary needs.
 
 ## Features
 
